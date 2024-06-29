@@ -70,3 +70,22 @@ The LiDAR scans are fused into one single pointcloud surrounding the vehicle. Th
 <em>Fused point cloud</em></br>
 <img src="res/pointcloud_example.png"  width="600">
 </p>
+
+## Visualize the labels
+
+### Bouding boxes on PLY
+
+To visualize the point clouds and display the bounding boxes of the vehicles:
+
+```
+python3 viz.py dataset/training/individual_files_training_segment-etc
+```
+
+Then, you can press _SPACE_ to pause/play the processing. In pause mode, you can go frame by frame by hitting the _N(ext)_ key.
+
+I intentionnally only kept the vehicle bounding boxes, but you can also display the other classes (pedestrian, signs, cyclists). There is also a filtering on the number of points, this is crucial because we can't expect our CNN to detect every objects even when a very limited amount of points hit the vehicles.
+
+<p style="text-align:center">
+<em>Show bounding boxes with Open3D</em></br>
+<img src="res/bbox_ply.png"  width="600">
+</p>
