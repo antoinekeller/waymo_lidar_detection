@@ -102,3 +102,17 @@ python3 viz.py dataset/training/individual_files_training_segment-etc --front
 <em>Show bounding boxes projected on the front camera</em></br>
 <img src="res/bbox_front_camera.png"  width="600">
 </p>
+
+## CNN training
+
+The network is inspired from CenterNet and uses Resnet as a backbone. The pointcoud is converted to a BEV image with a "pixel" of 10cm. The 3 channels are not RGB, but the maximum height, the minimum height and the number of points contained in the 10cm x 10cm vertical square.
+
+Then we predict the center of the bounding box, its width, its length, its height and its orientation. We assume that all objects lie on the ground (z = 0).
+
+## CNN inference
+
+At the end of the notebook, you can run the network on a complete sequence. This will write to `inference/` and store the results of each frame in `inference_***.json`, with the exact same format than labels json.
+
+```
+python3 viz.py dataset/training/individual_files_training_segment-etc --inference
+```
