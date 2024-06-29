@@ -89,3 +89,16 @@ I intentionnally only kept the vehicle bounding boxes, but you can also display 
 <em>Show bounding boxes with Open3D</em></br>
 <img src="res/bbox_ply.png"  width="600">
 </p>
+
+### Bouding boxes projected onto cameras
+
+You can project the bounding boxes onto any camera you like.
+
+```
+python3 viz.py dataset/training/individual_files_training_segment-etc --front
+```
+
+<p style="text-align:center">
+<em>Show bounding boxes projected on the front camera</em></br>
+<img src="res/bbox_front_camera.png"  width="600">
+</p>
