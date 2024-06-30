@@ -12,6 +12,8 @@ import json
 import cv2
 from utils import project
 
+MIN_LIDAR_POINTS = 100
+
 def make_bounding_boxes(path):
     with open(path,"r") as file:
         jsonData = json.load(file)
@@ -25,7 +27,7 @@ def make_bounding_boxes(path):
         if bbox["class"] != "TYPE_VEHICLE":
             continue
 
-        if bbox["num_lidar_points_in_box"] < 100:
+        if bbox["num_lidar_points_in_box"] < MIN_LIDAR_POINTS:
             continue
 
         x = bbox["center_x"]
@@ -204,6 +206,9 @@ def display_point_cloud():
         for bbox in jsonData:
 
             if bbox["class"] == "TYPE_SIGN":
+                continue
+
+            if bbox["num_lidar_points_in_box"] < MIN_LIDAR_POINTS:
                 continue
 
             height = bbox["height"]
