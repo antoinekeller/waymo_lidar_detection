@@ -52,8 +52,9 @@ dataset = tf.data.TFRecordDataset(args.tfrecord, compression_type='')
 
 CAMERA_NAMES = ["NONE", "FRONT", "FRONT_LEFT", "FRONT_RIGHT", "SIDE_LEFT", "SIDE_RIGHT"]
 
+nb_frames = len(list(dataset))
 idx = 1
-for data in tqdm(dataset, total=198):
+for data in tqdm(dataset, total=nb_frames):
     frame = open_dataset.Frame()
     frame.ParseFromString(bytearray(data.numpy()))
 
