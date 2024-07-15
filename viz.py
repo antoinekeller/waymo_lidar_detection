@@ -11,6 +11,7 @@ import os
 import json
 import cv2
 from utils import project
+from line_mesh import LineMesh
 
 MIN_LIDAR_POINTS = 100
 
@@ -20,7 +21,6 @@ def make_bounding_boxes(path):
 
     points = []
     lines = []
-    colors = []
     i = 0
     for bbox in jsonData:
 
@@ -86,7 +86,6 @@ def make_bounding_boxes(path):
         ]
 
         # if bbox["class"] == "TYPE_VEHICLE":
-        colors += [[1, 0, 0] for _ in range(12)]
 
         i += 1
         # elif bbox["class"] == "TYPE_SIGN":
@@ -96,18 +95,20 @@ def make_bounding_boxes(path):
         # else:
         #     print(bbox["class"]) 
     
-    return points, lines, colors
+    return points, lines
 
 class Model:
     def __init__(self):
         self.__vis = open3d.visualization.VisualizerWithKeyCallback()
-        self.__vis.create_window()
+        self.__vis.create_window(window_name='Waymo Lidar Detection', width=1920, height=1280)
 
         self.pcd = None
+        self.bboxes = None
 
         self.__vis.register_key_callback(32, self.pause)
         self.__vis.register_key_callback(78, self.next_frame)
         self.__vis.get_render_option().point_size = 3
+        self.__vis.get_render_option().background_color = [0.1, 0.1, 0.1]
         self.is_paused = False
         self.next_frame = False
 
@@ -124,7 +125,7 @@ class Model:
     def next_frame(self, _):
         self.next_frame = True
 
-    def add_xyz(self, xyz):
+    def add_xyz(self, xyz, points, lines):
         self.pcd = open3d.geometry.PointCloud()
 
         self.pcd.points = open3d.utility.Vector3dVector(xyz)
@@ -133,20 +134,27 @@ class Model:
             lines=open3d.utility.Vector2iVector([]),
         )
 
+        self.bboxes = open3d.geometry.TriangleMesh()
+        line_mesh = LineMesh(points, lines)
+        line_mesh.merge_cylinder_segments()
+        self.bboxes.vertices = line_mesh.cylinder_segments[0].vertices
+        self.bboxes.triangles = line_mesh.cylinder_segments[0].triangles
+
         self.__vis.add_geometry(self.pcd)
-        self.__vis.add_geometry(self.line_set)
+        self.__vis.add_geometry(self.bboxes)
         self.__vis.poll_events()
         self.__vis.update_renderer()
 
     def show(self):
+        self.bboxes.paint_uniform_color([1, 0, 0])
         self.__vis.update_geometry(self.pcd)
-        self.__vis.update_geometry(self.line_set)
+        self.__vis.update_geometry(self.bboxes)
+        
         self.__vis.poll_events()
         self.__vis.update_renderer()
 
     def kill(self):
         return not self.__vis.poll_events()
-
 
 
 def display_point_cloud():
@@ -172,16 +180,24 @@ def display_point_cloud():
             
         pcd = open3d.io.read_point_cloud(f"{args.sample}/pointclouds/pointcloud_{i:03d}.ply")
 
+        points, lines = make_bounding_boxes(f"{args.sample}/{labels_or_inference}/{labels_or_inference}_{i:03d}.json")
+
         if model.pcd is None:
-            model.add_xyz(pcd.points)
+            model.add_xyz(pcd.points, points, lines)
+
             model.set_view()
+        
+        # print(colors)
+        line_mesh = LineMesh(points, lines, radius=0.1)
+        line_mesh.cylinder_segments = []
+        line_mesh.create_line_mesh()
+        line_mesh.merge_cylinder_segments()
+        model.bboxes.vertices = line_mesh.cylinder_segments[0].vertices
+        model.bboxes.triangles = line_mesh.cylinder_segments[0].triangles
+        
+
         model.pcd.points = open3d.utility.Vector3dVector(pcd.points)
-
-        points, lines, colors = make_bounding_boxes(f"{args.sample}/{labels_or_inference}/{labels_or_inference}_{i:03d}.json")
-        model.line_set.points = open3d.utility.Vector3dVector(points)
-        model.line_set.lines =  open3d.utility.Vector2iVector(lines)
-        model.line_set.colors = open3d.utility.Vector3dVector(colors)
-
+        
         model.show()
 
         if args.front:
@@ -196,6 +212,7 @@ def display_point_cloud():
             folder = "side_right"
         else:
             i += 1
+            start = time()
             continue
 
         img = cv2.imread(f"{args.sample}/images/{folder}/image_{i:03d}.png")
@@ -205,7 +222,7 @@ def display_point_cloud():
 
         for bbox in jsonData:
 
-            if bbox["class"] == "TYPE_SIGN":
+            if bbox["class"] != "TYPE_VEHICLE":
                 continue
 
             if bbox["num_lidar_points_in_box"] < MIN_LIDAR_POINTS:
