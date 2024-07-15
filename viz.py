@@ -125,15 +125,10 @@ class Model:
     def next_frame(self, _):
         self.next_frame = True
 
-    def add_xyz(self, xyz, points, lines):
+    def init(self, xyz, points, lines):
         self.pcd = open3d.geometry.PointCloud()
 
         self.pcd.points = open3d.utility.Vector3dVector(xyz)
-        self.line_set = open3d.geometry.LineSet(
-            points=open3d.utility.Vector3dVector([]),
-            lines=open3d.utility.Vector2iVector([]),
-        )
-
         self.bboxes = open3d.geometry.TriangleMesh()
         line_mesh = LineMesh(points, lines)
         self.bboxes.vertices = line_mesh.mesh.vertices
@@ -182,8 +177,7 @@ def display_point_cloud():
         points, lines = make_bounding_boxes(f"{args.sample}/{labels_or_inference}/{labels_or_inference}_{i:03d}.json")
 
         if model.pcd is None:
-            model.add_xyz(pcd.points, points, lines)
-
+            model.init(pcd.points, points, lines)
             model.set_view()
         
         # print(colors)
