@@ -50,7 +50,7 @@ class LineMesh(object):
         self.points = np.array(points)
         self.lines = np.array(lines)
         self.radius = radius
-        self.cylinder_segments = []
+        self.mesh = None
 
         self.create_line_mesh()
 
@@ -64,6 +64,8 @@ class LineMesh(object):
         second_points = self.points[self.lines[:, 1], :]
         line_segments = second_points - first_points
         line_segments_unit, line_lengths = normalized(line_segments)
+
+        cylinder_segments = []
 
         z_axis = np.array([0, 0, 1])
         # Create triangular mesh cylinder segments of line
@@ -85,20 +87,18 @@ class LineMesh(object):
                     R=o3d.geometry.get_rotation_matrix_from_axis_angle(axis_a), 
                     center=cylinder_segment.get_center())
 
-            self.cylinder_segments.append(cylinder_segment)
+            cylinder_segments.append(cylinder_segment)
 
         # Merge them all together
-        vertices_list = [np.asarray(mesh.vertices) for mesh in self.cylinder_segments]
-        triangles_list = [np.asarray(mesh.triangles) for mesh in self.cylinder_segments]
+        vertices_list = [np.asarray(mesh.vertices) for mesh in cylinder_segments]
+        triangles_list = [np.asarray(mesh.triangles) for mesh in cylinder_segments]
         triangles_offset = np.cumsum([v.shape[0] for v in vertices_list])
         triangles_offset = np.insert(triangles_offset, 0, 0)[:-1]
     
         vertices = np.vstack(vertices_list)
         triangles = np.vstack([triangle + offset for triangle, offset in zip(triangles_list, triangles_offset)])
     
-        merged_mesh = o3d.geometry.TriangleMesh(o3d.open3d.utility.Vector3dVector(vertices), 
+        self.mesh = o3d.geometry.TriangleMesh(o3d.open3d.utility.Vector3dVector(vertices), 
                                                 o3d.open3d.utility.Vector3iVector(triangles))
-
-        self.cylinder_segments = [merged_mesh]
 
 

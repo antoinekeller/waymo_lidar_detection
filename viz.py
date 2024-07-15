@@ -136,8 +136,8 @@ class Model:
 
         self.bboxes = open3d.geometry.TriangleMesh()
         line_mesh = LineMesh(points, lines)
-        self.bboxes.vertices = line_mesh.cylinder_segments[0].vertices
-        self.bboxes.triangles = line_mesh.cylinder_segments[0].triangles
+        self.bboxes.vertices = line_mesh.mesh.vertices
+        self.bboxes.triangles = line_mesh.mesh.triangles
 
         self.__vis.add_geometry(self.pcd)
         self.__vis.add_geometry(self.bboxes)
@@ -188,10 +188,9 @@ def display_point_cloud():
         
         # print(colors)
         line_mesh = LineMesh(points, lines, radius=0.1)
-        line_mesh.cylinder_segments = []
         line_mesh.create_line_mesh()
-        model.bboxes.vertices = line_mesh.cylinder_segments[0].vertices
-        model.bboxes.triangles = line_mesh.cylinder_segments[0].triangles
+        model.bboxes.vertices = line_mesh.mesh.vertices
+        model.bboxes.triangles = line_mesh.mesh.triangles
         
 
         model.pcd.points = open3d.utility.Vector3dVector(pcd.points)
