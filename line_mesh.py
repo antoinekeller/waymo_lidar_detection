@@ -87,8 +87,7 @@ class LineMesh(object):
 
             self.cylinder_segments.append(cylinder_segment)
 
-    def merge_cylinder_segments(self):
-
+        # Merge them all together
         vertices_list = [np.asarray(mesh.vertices) for mesh in self.cylinder_segments]
         triangles_list = [np.asarray(mesh.triangles) for mesh in self.cylinder_segments]
         triangles_offset = np.cumsum([v.shape[0] for v in vertices_list])
