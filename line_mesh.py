@@ -60,6 +60,9 @@ class LineMesh(object):
         return np.array(lines)
 
     def create_line_mesh(self):
+        if len(self.lines) == 0:
+            return
+        
         first_points = self.points[self.lines[:, 0], :]
         second_points = self.points[self.lines[:, 1], :]
         line_segments = second_points - first_points

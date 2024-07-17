@@ -1,12 +1,9 @@
-"""Read depth file coming from the Apple LiDAR and display it with OpenCV"""
-
 import numpy as np
-import matplotlib.pyplot as plt
 import cv2
 from argparse import ArgumentParser
 import json
 import open3d
-from time import time, sleep
+from time import time
 import os
 import json
 import cv2
@@ -103,7 +100,7 @@ class Model:
         self.__vis.create_window(window_name='Waymo Lidar Detection', width=1920, height=1280)
 
         self.pcd = None
-        self.bboxes = None
+        self.bboxes = open3d.geometry.TriangleMesh()
 
         self.__vis.register_key_callback(32, self.pause)
         self.__vis.register_key_callback(78, self.next_frame)
@@ -140,7 +137,9 @@ class Model:
         self.__vis.update_renderer()
 
     def show(self):
-        self.bboxes.paint_uniform_color([1, 0, 0])
+        # self.bboxes.paint_uniform_color([1, 0, 0]) # red
+        self.bboxes.paint_uniform_color([1, 0.5, 0]) # orange
+        # self.bboxes.paint_uniform_color([0, 0.5, 1]) # blue
         self.__vis.update_geometry(self.pcd)
         self.__vis.update_geometry(self.bboxes)
         
@@ -150,6 +149,8 @@ class Model:
     def kill(self):
         return not self.__vis.poll_events()
 
+    def screenshot(self, path):
+        self.__vis.capture_screen_image(path, True)
 
 def display_point_cloud():
     
@@ -183,13 +184,16 @@ def display_point_cloud():
         # print(colors)
         line_mesh = LineMesh(points, lines, radius=0.1)
         line_mesh.create_line_mesh()
-        model.bboxes.vertices = line_mesh.mesh.vertices
-        model.bboxes.triangles = line_mesh.mesh.triangles
+        if line_mesh.mesh is not None:
+            model.bboxes.vertices = line_mesh.mesh.vertices
+            model.bboxes.triangles = line_mesh.mesh.triangles
         
 
         model.pcd.points = open3d.utility.Vector3dVector(pcd.points)
         
         model.show()
+        
+        # img = model.screenshot(f"tmp/viz_{i:03d}.png")
 
         if args.front:
             folder = "front"
@@ -383,6 +387,8 @@ def display_point_cloud():
             alpha = 0.3
             img = cv2.addWeighted(img, 1 - alpha, image_overlay, alpha, 0)
             
+        # cv2.imwrite(f"tmp/image_{i:03d}.png", img)
+
         cv2.imshow("Image", img)
         k = cv2.waitKey(10)
 
