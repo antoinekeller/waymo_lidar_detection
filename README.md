@@ -1,5 +1,10 @@
 # LiDAR-based vehicles detection with Waymo Open Dataset
 
+<p style="text-align:center">
+<em>Oriented bounding boxes detection</em></br>
+<img src="res/demo.gif"  width="800">
+</p>
+
 In this project, we are working with the [Waymo Open Dataset](https://waymo.com/open/download/) that provides hours of recording of LiDAR and camera sensors embedded on a vehicle. It comes with oriented bounding boxes that are well annotated in 3D. The goal is to detect surrounding vehicles based on the LiDAR data. Note that we don't rely on the 5 cameras for that, we only use them to reproject the 3D bounding boxes for visualization purpose.
 
 Pedestrians, signs and cyclists could be detected in a similar way. LiDAR data enables to accurately detect the oriented bounding boxes up to 50m. The pointcloud is converted to a Bird Eye View image of 10cm pixel size and we feed the CNN with 3 channels : the maximum height, the minimum height and the number of points in these 10cm x 10cm vertical sections. The CNN is inspired from CenterNet where (x, y, z) positions + (width, height, length) dimensions and heading angle are regressed.
