@@ -1,4 +1,10 @@
-# waymo_lidar_detection
+# LiDAR-based vehicles detection with Waymo Open Dataset
+
+In this project, we are working with the [Waymo Open Dataset](https://waymo.com/open/download/) that provides hours of recording of LiDAR and camera sensors embedded on a vehicle. It comes with oriented bounding boxes that are well annotated in 3D. The goal is to detect surrounding vehicles based on the LiDAR data. Note that we don't rely on the 5 cameras for that, we only use them to reproject the 3D bounding boxes for visualization purpose.
+
+Pedestrians, signs and cyclists could be detected in a similar way. LiDAR data enables to accurately detect the oriented bounding boxes up to 50m. The pointcloud is converted to a Bird Eye View image of 10cm pixel size and we feed the CNN with 3 channels : the maximum height, the minimum height and the number of points in these 10cm x 10cm vertical sections. The CNN is inspired from CenterNet where (x, y, z) positions + (width, height, length) dimensions and heading angle are regressed.
+
+See the [YouTube video](https://www.youtube.com/watch?v=Xsg9VwqOAM4&ab_channel=antoinekeller)
 
 ## Dataset extraction
 
@@ -107,12 +113,30 @@ python3 viz.py dataset/training/individual_files_training_segment-etc --front
 
 The network is inspired from CenterNet and uses Resnet as a backbone. The pointcoud is converted to a BEV image with a "pixel" of 10cm. The 3 channels are not RGB, but the maximum height, the minimum height and the number of points contained in the 10cm x 10cm vertical square.
 
-Then we predict the center of the bounding box, its width, its length, its height and its orientation. We assume that all objects lie on the ground (z = 0).
+Then we predict the center of the bounding box, its width, its length, its height and its orientation. We also predict the z position since we can not assume that the ground is flat.
+
+Check the `training-and-inference.ipynb` notebook. After training, you will be able to extract the inference results on the validation dataset.
 
 ## CNN inference
 
 At the end of the notebook, you can run the network on a complete sequence. This will write to `inference/` and store the results of each frame in `inference_***.json`, with the exact same format than labels json.
 
 ```
-python3 viz.py dataset/training/individual_files_training_segment-etc --inference
+python3 viz.py dataset/validation/individual_files_validation_segment-etc --inference
 ```
+
+<p style="text-align:center">
+<em>CNN results with Open3D viz</em></br>
+<img src="res/detection_results_open3d.png"  width="600">
+</p>
+
+You can also visualize how the 3D bounding boxes are projected to the camera
+
+```
+python3 viz.py dataset/validation/individual_files_validation_segment-etc --inference --front
+```
+
+<p style="text-align:center">
+<em>Bounding boxes projected to the front camera</em></br>
+<img src="res/detection_results_camera.png"  width="600">
+</p>
